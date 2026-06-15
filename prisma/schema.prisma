@@ -1,0 +1,32 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  vault        Vault?
+}
+
+model Vault {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  record    Json
+  rev       Int      @default(1)
+  updatedAt DateTime @updatedAt
+}
+
+// Fixed-window counter used to throttle login and signup attempts.
+// `key` encodes what is being limited (e.g. "login:<ip>:<email>").
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+}
